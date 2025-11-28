@@ -1,24 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Send, Info } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router';
+import { ArrowLeft, Send, Info, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import { getChat, sendMessage } from '../utils/api';
 import { useCurrentUser } from '../utils/useCurrentUser';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function ChatDetailPage() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useCurrentUser();
   const [chat, setChat] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [showHelper, setShowHelper] = useState(true);
   const [loading, setLoading] = useState(true);
+  
+  // Get suggested message from navigation state
+  const suggestedMessage = (location.state as any)?.suggestedMessage || '';
 
   useEffect(() => {
     if (user && chatId) {
       loadChat();
     }
   }, [user, chatId]);
+
+  // Auto-fill suggested message if provided
+  useEffect(() => {
+    if (suggestedMessage && !message) {
+      setMessage(suggestedMessage);
+    }
+  }, [suggestedMessage]);
 
   const loadChat = async () => {
     if (!user || !chatId) return;
@@ -70,7 +82,7 @@ export function ChatDetailPage() {
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-2">
           <button
             onClick={() => navigate('/chats')}
             className="text-gray-600 hover:text-gray-900"
@@ -78,34 +90,66 @@ export function ChatDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
-            {chat.user?.name?.charAt(0) || '?'}
-          </div>
+          {chat.user?.photo ? (
+            <ImageWithFallback
+              src={chat.user.photo}
+              alt={chat.user.name}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
+              {chat.user?.name?.charAt(0) || '?'}
+            </div>
+          )}
           
           <div className="flex-1 min-w-0">
             <h3 className="text-gray-900 truncate">{chat.user?.name || 'Unknown'}</h3>
             <p className="text-gray-600 text-sm truncate">{chat.user?.campus || ''}</p>
           </div>
         </div>
+        
+        {/* Skill Swap Badge */}
+        {chat.user?.teachSkills?.[0] && chat.user?.learnSkills?.[0] && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+              {chat.user.teachSkills[0].skill}
+            </span>
+            <span className="text-gray-400">↔</span>
+            <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full">
+              {chat.user.learnSkills[0].skill}
+            </span>
+            <span className="text-gray-600">Skill Swap</span>
+          </div>
+        )}
       </div>
 
-      {/* Helper (Pinned) */}
+      {/* Pinned Swap Helper */}
       {showHelper && (
-        <div className="bg-purple-50 border-b border-purple-200 p-3">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200 p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Info className="w-4 h-4 text-purple-600" />
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-purple-900 text-sm mb-2">Guide to a great swap:</p>
-              <ol className="text-purple-800 text-xs space-y-0.5 ml-4 list-decimal">
-                <li>Share your learning story 😊</li>
-                <li>Ask skill level 🧠</li>
-                <li>Pick time & format 📅</li>
-                <li>Make a mini plan ✍️</li>
+              <p className="text-purple-900 text-sm mb-2">Swap flow:</p>
+              <ol className="text-purple-800 text-xs space-y-1 ml-1 list-none">
+                <li>1. Share learning journeys</li>
+                <li>2. Align skill levels</li>
+                <li>3. Co-build session plan</li>
+                <li>4. Book a time</li>
               </ol>
+              <Button
+                onClick={() => navigate('/bookings')}
+                variant="outline"
+                className="mt-3 text-xs border-purple-600 text-purple-600 hover:bg-purple-50 w-full"
+              >
+                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                Create Booking Request
+              </Button>
             </div>
             <button
               onClick={() => setShowHelper(false)}
-              className="text-purple-600 hover:text-purple-800 text-xs"
+              className="text-purple-600 hover:text-purple-800 text-sm flex-shrink-0"
             >
               ✕
             </button>

@@ -27,7 +27,7 @@ export function BookingModal({ match, onClose }: BookingModalProps) {
   ];
 
   const handleSendRequest = async () => {
-    if (!user || !selectedDate || creating) return;
+    if (!user || !selectedDate || creating || !match.user) return;
     
     setCreating(true);
     try {
@@ -74,11 +74,11 @@ export function BookingModal({ match, onClose }: BookingModalProps) {
           <div className="bg-purple-50 rounded-lg p-4 mb-6 text-left">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm">
-                {match.user.name.charAt(0)}
+                {match.user?.name?.charAt(0) || '?'}
               </div>
               <div>
-                <p className="text-gray-900">{match.user.name}</p>
-                <p className="text-gray-600 text-sm">{match.user.campus}</p>
+                <p className="text-gray-900">{match.user?.name || 'Unknown'}</p>
+                <p className="text-gray-600 text-sm">{match.user?.campus || 'Unknown campus'}</p>
               </div>
             </div>
             <div className="text-sm text-gray-700">
@@ -117,7 +117,7 @@ export function BookingModal({ match, onClose }: BookingModalProps) {
           </button>
           
           <h2 className="text-white mb-1">Suggest Appointment</h2>
-          <p className="text-purple-100 text-sm">with {match.user.name}</p>
+          <p className="text-purple-100 text-sm">with {match.user?.name || 'Unknown'}</p>
         </div>
 
         {/* Content */}

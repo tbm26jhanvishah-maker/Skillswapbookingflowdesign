@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router';
-import { Home, MessageCircle, Calendar, User } from 'lucide-react';
+import { Home, MessageCircle, Calendar, User, Settings } from 'lucide-react';
 
 export function Layout() {
   const location = useLocation();
@@ -15,8 +15,26 @@ export function Layout() {
     <div className="flex flex-col h-screen bg-gray-50 max-w-md mx-auto">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
-        <h1 className="text-center text-purple-600">SkillSwap</h1>
-        <p className="text-center text-gray-500 text-sm">Teach one. Learn many.</p>
+        <div className="flex items-center justify-between">
+          <div className="flex-1"></div>
+          <div className="flex-1 text-center">
+            <h1 className="text-purple-600">SkillSwap</h1>
+            <p className="text-gray-500 text-sm">Teach one. Learn many.</p>
+          </div>
+          <div className="flex-1 flex justify-end">
+            <Link
+              to="/admin"
+              className={`p-2 rounded-lg transition-colors ${
+                isActive('/admin')
+                  ? 'text-purple-600 bg-purple-50'
+                  : 'text-gray-400 hover:text-purple-600 hover:bg-gray-50'
+              }`}
+              title="Admin Panel"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}

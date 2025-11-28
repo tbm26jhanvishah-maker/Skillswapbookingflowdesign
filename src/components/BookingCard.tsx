@@ -35,9 +35,17 @@ export function BookingCard({ booking }: BookingCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
-            {booking.user.name.charAt(0)}
-          </div>
+          {booking.user.photo ? (
+            <img
+              src={booking.user.photo}
+              alt={booking.user.name}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
+              {booking.user.name.charAt(0)}
+            </div>
+          )}
           <div>
             <h3 className="text-gray-900">{booking.user.name}</h3>
             <p className="text-gray-600 text-sm">{booking.user.campus}</p>

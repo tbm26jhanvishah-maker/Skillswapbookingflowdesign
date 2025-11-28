@@ -8,6 +8,45 @@ const headers = {
   'Authorization': `Bearer ${publicAnonKey}`,
 };
 
+// ===== SEED API =====
+
+export async function seedDatabase(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/seed`, {
+      method: 'POST',
+      headers,
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    return false;
+  }
+}
+
+export async function clearDatabase(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/clear`, {
+      method: 'POST',
+      headers,
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error clearing database:', error);
+    return false;
+  }
+}
+
+export async function getDatabaseStats(): Promise<{ users: number; matches: number; chats: number; bookings: number } | null> {
+  try {
+    const response = await fetch(`${API_BASE}/stats`, { headers });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching database stats:', error);
+    return null;
+  }
+}
+
 // ===== USER API =====
 
 export async function getUser(userId: string): Promise<User | null> {

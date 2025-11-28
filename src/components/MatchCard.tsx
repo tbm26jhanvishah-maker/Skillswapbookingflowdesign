@@ -16,6 +16,11 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
+  // Safety check for user data
+  if (!match.user) {
+    return null;
+  }
+
   return (
     <div
       onClick={onClick}
@@ -31,13 +36,13 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white flex-shrink-0">
-          {match.user.name.charAt(0)}
+          {match.user?.name?.charAt(0) || '?'}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-gray-900 truncate">{match.user.name}</h3>
+            <h3 className="text-gray-900 truncate">{match.user?.name || 'Unknown'}</h3>
             {match.mutualSwap && (
               <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">
                 Mutual
@@ -47,7 +52,7 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
           
           <div className="flex items-center gap-1 text-gray-600 text-sm mb-3">
             <MapPin className="w-3.5 h-3.5" />
-            <span className="truncate">{match.user.campus}</span>
+            <span className="truncate">{match.user?.campus || 'Unknown campus'}</span>
           </div>
 
           {/* Skill Swap */}

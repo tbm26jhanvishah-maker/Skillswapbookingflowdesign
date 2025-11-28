@@ -64,9 +64,17 @@ export function ChatsPage() {
             className="flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors"
           >
             {/* Avatar */}
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white flex-shrink-0">
-              {chat.user?.name?.charAt(0) || '?'}
-            </div>
+            {chat.user?.photo ? (
+              <img
+                src={chat.user.photo}
+                alt={chat.user.name}
+                className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white flex-shrink-0">
+                {chat.user?.name?.charAt(0) || '?'}
+              </div>
+            )}
 
             {/* Content */}
             <div className="flex-1 min-w-0">

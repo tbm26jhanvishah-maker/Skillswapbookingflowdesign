@@ -18,7 +18,7 @@ export function MatchModal({ match, onClose }: MatchModalProps) {
   const navigate = useNavigate();
 
   const handleStartChat = async () => {
-    if (!user) return;
+    if (!user || !match.user) return;
     
     // Create or get existing chat
     const chat = await createChat(user.id, match.user.id, match.user);
@@ -30,6 +30,11 @@ export function MatchModal({ match, onClose }: MatchModalProps) {
 
   if (showBooking) {
     return <BookingModal match={match} onClose={onClose} />;
+  }
+
+  // Safety check
+  if (!match.user) {
+    return null;
   }
 
   return (
@@ -49,7 +54,7 @@ export function MatchModal({ match, onClose }: MatchModalProps) {
             <h2 className="text-white">It's a Swap!</h2>
           </div>
           <p className="text-purple-100">
-            You matched with {match.user.name}
+            You matched with {match.user?.name || 'Unknown'}
           </p>
         </div>
 
@@ -58,12 +63,12 @@ export function MatchModal({ match, onClose }: MatchModalProps) {
           {/* User Info */}
           <div className="flex items-center gap-3 mb-6">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
-              <span className="text-xl">{match.user.name.charAt(0)}</span>
+              <span className="text-xl">{match.user?.name?.charAt(0) || '?'}</span>
             </div>
             <div>
-              <h3 className="text-gray-900">{match.user.name}</h3>
-              <p className="text-gray-600 text-sm">{match.user.campus}</p>
-              {match.user.availability && (
+              <h3 className="text-gray-900">{match.user?.name || 'Unknown'}</h3>
+              <p className="text-gray-600 text-sm">{match.user?.campus || 'Unknown campus'}</p>
+              {match.user?.availability && (
                 <p className="text-gray-500 text-xs mt-0.5">
                   Available: {match.user.availability.join(', ')}
                 </p>
@@ -72,9 +77,11 @@ export function MatchModal({ match, onClose }: MatchModalProps) {
           </div>
 
           {/* Bio */}
-          <div className="mb-6">
-            <p className="text-gray-700 text-sm">{match.user.bio}</p>
-          </div>
+          {match.user?.bio && (
+            <div className="mb-6">
+              <p className="text-gray-700 text-sm">{match.user.bio}</p>
+            </div>
+          )}
 
           {/* Swap Details */}
           <div className="bg-purple-50 rounded-xl p-4 mb-6">
