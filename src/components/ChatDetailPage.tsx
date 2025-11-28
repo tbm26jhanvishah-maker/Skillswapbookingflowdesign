@@ -1,15 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, Send, Info } from 'lucide-react';
 import { Button } from './ui/button';
-import { mockChats } from '../utils/mockData';
+import { getChat, sendMessage } from '../utils/api';
+import { useCurrentUser } from '../utils/useCurrentUser';
 
 export function ChatDetailPage() {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  const chat = mockChats.find(c => c.id === chatId);
+  const { user } = useCurrentUser();
+  const [chat, setChat] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [showHelper, setShowHelper] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user && chatId) {
+      loadChat();
+    }
+  }, [user, chatId]);
+
+  const loadChat = async () => {
+    if (!user || !chatId) return;
+    
+    setLoading(true);
+    try {
+      const data = await getChat(user.id, chatId);
+      setChat(data);
+    } catch (error) {
+      console.error('Error loading chat:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!message.trim() || !user || !chatId) return;
+    
+    const success = await sendMessage(chatId, user.id, message.trim());
+    if (success) {
+      setMessage('');
+      // Reload chat to get new message
+      await loadChat();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 text-center py-12 text-gray-500">
+        <p>Loading chat...</p>
+      </div>
+    );
+  }
 
   if (!chat) {
     return (
@@ -22,14 +64,7 @@ export function ChatDetailPage() {
     );
   }
 
-  const handleSend = () => {
-    if (message.trim()) {
-      // In real app, would add message to chat
-      setMessage('');
-    }
-  };
-
-  const conversationStarter = `Hey! I'd love to swap — you teach ${chat.user.teachSkills?.[0]?.skill || 'your skill'}, I'll teach ${chat.user.learnSkills?.[0]?.skill || 'my skill'}. How did you start learning this? Let's plan our session :)`;
+  const conversationStarter = `Hey! I'd love to swap — you teach ${chat.user?.teachSkills?.[0]?.skill || 'your skill'}, I'll teach ${chat.user?.learnSkills?.[0]?.skill || 'my skill'}. How did you start learning this? Let's plan our session :)`;
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -44,12 +79,12 @@ export function ChatDetailPage() {
           </button>
           
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white">
-            {chat.user.name.charAt(0)}
+            {chat.user?.name?.charAt(0) || '?'}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-gray-900 truncate">{chat.user.name}</h3>
-            <p className="text-gray-600 text-sm truncate">{chat.user.campus}</p>
+            <h3 className="text-gray-900 truncate">{chat.user?.name || 'Unknown'}</h3>
+            <p className="text-gray-600 text-sm truncate">{chat.user?.campus || ''}</p>
           </div>
         </div>
       </div>
@@ -80,8 +115,9 @@ export function ChatDetailPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {chat.messages.map((msg) => {
-          const isCurrentUser = msg.senderId === 'current-user';
+        {(chat.messages || []).map((msg: any) => {
+          const isCurrentUser = msg.senderId === user?.id;
+          const timestamp = new Date(msg.timestamp);
           return (
             <div
               key={msg.id}
@@ -98,7 +134,7 @@ export function ChatDetailPage() {
                 <p className={`text-xs mt-1 ${
                   isCurrentUser ? 'text-purple-200' : 'text-gray-500'
                 }`}>
-                  {msg.timestamp.toLocaleTimeString('en-US', { 
+                  {timestamp.toLocaleTimeString('en-US', { 
                     hour: 'numeric', 
                     minute: '2-digit' 
                   })}
@@ -109,7 +145,7 @@ export function ChatDetailPage() {
         })}
 
         {/* Conversation Starter Suggestion */}
-        {chat.messages.length === 0 && (
+        {(!chat.messages || chat.messages.length === 0) && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-2">Suggested starter:</p>
             <p className="text-sm text-gray-700 mb-3">"{conversationStarter}"</p>

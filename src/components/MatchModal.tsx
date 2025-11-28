@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { X, ArrowRightLeft, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { BookingModal } from './BookingModal';
+import { createChat } from '../utils/api';
+import { useCurrentUser } from '../utils/useCurrentUser';
 import type { Match } from '../utils/mockData';
 
 interface MatchModalProps {
@@ -11,12 +13,19 @@ interface MatchModalProps {
 }
 
 export function MatchModal({ match, onClose }: MatchModalProps) {
+  const { user } = useCurrentUser();
   const [showBooking, setShowBooking] = useState(false);
   const navigate = useNavigate();
 
-  const handleStartChat = () => {
-    navigate(`/chats/c${match.user.id}`);
-    onClose();
+  const handleStartChat = async () => {
+    if (!user) return;
+    
+    // Create or get existing chat
+    const chat = await createChat(user.id, match.user.id, match.user);
+    if (chat) {
+      navigate(`/chats/${chat.id}`);
+      onClose();
+    }
   };
 
   if (showBooking) {

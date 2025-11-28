@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
+import { createBooking } from '../utils/api';
+import { useCurrentUser } from '../utils/useCurrentUser';
 import type { Match, SessionMode } from '../utils/mockData';
 
 interface BookingModalProps {
@@ -10,11 +12,13 @@ interface BookingModalProps {
 }
 
 export function BookingModal({ match, onClose }: BookingModalProps) {
+  const { user } = useCurrentUser();
   const [step, setStep] = useState<'select' | 'confirmed'>('select');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState('11:00 AM');
   const [mode, setMode] = useState<SessionMode>('online');
   const [duration] = useState(30);
+  const [creating, setCreating] = useState(false);
 
   const timeSlots = [
     '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -22,8 +26,31 @@ export function BookingModal({ match, onClose }: BookingModalProps) {
     '6:00 PM', '7:00 PM', '8:00 PM'
   ];
 
-  const handleSendRequest = () => {
-    setStep('confirmed');
+  const handleSendRequest = async () => {
+    if (!user || !selectedDate || creating) return;
+    
+    setCreating(true);
+    try {
+      const booking = await createBooking({
+        userId: user.id,
+        user: match.user,
+        teachSkill: match.learnSkill,
+        learnSkill: match.teachSkill,
+        date: selectedDate,
+        time: selectedTime,
+        mode,
+        duration,
+        status: 'pending',
+      });
+      
+      if (booking) {
+        setStep('confirmed');
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+    } finally {
+      setCreating(false);
+    }
   };
 
   if (step === 'confirmed') {
@@ -165,10 +192,10 @@ export function BookingModal({ match, onClose }: BookingModalProps) {
           {/* Actions */}
           <Button
             onClick={handleSendRequest}
-            disabled={!selectedDate}
+            disabled={!selectedDate || creating}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           >
-            Send Request
+            {creating ? 'Creating...' : 'Send Request'}
           </Button>
         </div>
       </div>

@@ -1,8 +1,35 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { mockChats } from '../utils/mockData';
+import { getChats } from '../utils/api';
+import { useCurrentUser } from '../utils/useCurrentUser';
 
 export function ChatsPage() {
-  const formatTime = (date: Date) => {
+  const { user } = useCurrentUser();
+  const [chats, setChats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadChats();
+    }
+  }, [user]);
+
+  const loadChats = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const data = await getChats(user.id);
+      setChats(data);
+    } catch (error) {
+      console.error('Error loading chats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -15,6 +42,14 @@ export function ChatsPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  if (loading) {
+    return (
+      <div className="p-4 text-center py-12 text-gray-500">
+        <p>Loading chats...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="p-4 pb-3">
@@ -22,7 +57,7 @@ export function ChatsPage() {
       </div>
 
       <div className="divide-y divide-gray-100">
-        {mockChats.map((chat) => (
+        {chats.map((chat) => (
           <Link
             key={chat.id}
             to={`/chats/${chat.id}`}
@@ -30,13 +65,13 @@ export function ChatsPage() {
           >
             {/* Avatar */}
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white flex-shrink-0">
-              {chat.user.name.charAt(0)}
+              {chat.user?.name?.charAt(0) || '?'}
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-gray-900 truncate">{chat.user.name}</h3>
+                <h3 className="text-gray-900 truncate">{chat.user?.name || 'Unknown'}</h3>
                 {chat.lastMessage && (
                   <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
                     {formatTime(chat.lastMessage.timestamp)}
@@ -45,14 +80,14 @@ export function ChatsPage() {
               </div>
               
               <p className="text-gray-600 text-sm truncate">
-                {chat.user.campus}
+                {chat.user?.campus || ''}
               </p>
               
               {chat.lastMessage && (
                 <p className={`text-sm mt-1 truncate ${
                   chat.unreadCount > 0 ? 'text-gray-900' : 'text-gray-600'
                 }`}>
-                  {chat.lastMessage.senderId === 'current-user' && 'You: '}
+                  {chat.lastMessage.senderId === user?.id && 'You: '}
                   {chat.lastMessage.text}
                 </p>
               )}
@@ -68,7 +103,7 @@ export function ChatsPage() {
         ))}
       </div>
 
-      {mockChats.length === 0 && (
+      {chats.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <p>No messages yet</p>
           <p className="text-sm mt-2">Start chatting with your matches!</p>

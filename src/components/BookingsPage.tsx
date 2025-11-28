@@ -1,19 +1,51 @@
-import { useState } from 'react';
-import { mockBookings } from '../utils/mockData';
+import { useState, useEffect } from 'react';
+import { getBookings } from '../utils/api';
+import { useCurrentUser } from '../utils/useCurrentUser';
 import { BookingCard } from './BookingCard';
 import type { Booking } from '../utils/mockData';
 
 export function BookingsPage() {
+  const { user } = useCurrentUser();
   const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const upcomingBookings = mockBookings.filter(
+  useEffect(() => {
+    if (user) {
+      loadBookings();
+    }
+  }, [user]);
+
+  const loadBookings = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const data = await getBookings(user.id);
+      setBookings(data);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const upcomingBookings = bookings.filter(
     b => b.status === 'confirmed' || b.status === 'pending'
   );
-  const pastBookings = mockBookings.filter(
+  const pastBookings = bookings.filter(
     b => b.status === 'completed' || b.status === 'cancelled'
   );
 
   const bookingsToShow = view === 'upcoming' ? upcomingBookings : pastBookings;
+
+  if (loading) {
+    return (
+      <div className="p-4 text-center py-12 text-gray-500">
+        <p>Loading bookings...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -7,7 +7,8 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, onClick }: MatchCardProps) {
-  const timeAgo = (date: Date) => {
+  const timeAgo = (dateStr: string | Date) => {
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
     if (seconds < 60) return 'just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
