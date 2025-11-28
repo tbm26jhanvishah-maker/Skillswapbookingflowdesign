@@ -2,6 +2,7 @@ import { Hono } from 'npm:hono';
 import { cors } from 'npm:hono/cors';
 import { logger } from 'npm:hono/logger';
 import * as kv from './kv_store.tsx';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const app = new Hono();
 
@@ -10,6 +11,62 @@ app.use('*', logger(console.log));
 
 // Prefix for all routes
 const PREFIX = '/make-server-45e2f32b';
+
+// Initialize Supabase admin client
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
+
+// ===== AUTH ROUTES =====
+
+// Signup endpoint with auto-confirmed email
+app.post(`${PREFIX}/auth/signup`, async (c) => {
+  try {
+    const { email, password, fullName } = await c.req.json();
+
+    // Create user with admin client to bypass email confirmation
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // Auto-confirm email since we don't have email server configured
+      user_metadata: {
+        full_name: fullName,
+        onboarding_completed: false, // Track if user completed skill setup
+      },
+    });
+
+    if (authError) {
+      console.error('Signup error:', authError);
+      
+      // Handle specific error cases with user-friendly messages
+      if (authError.message?.includes('already been registered') || authError.code === 'email_exists') {
+        return c.json({ 
+          error: 'An account with this email already exists. Please sign in instead.' 
+        }, 409);
+      }
+      
+      return c.json({ error: authError.message }, 400);
+    }
+
+    if (!authData.user) {
+      return c.json({ error: 'No user returned' }, 500);
+    }
+
+    // Return success - user can now sign in
+    return c.json({ 
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        full_name: fullName,
+      },
+      message: 'Account created successfully!'
+    });
+  } catch (error) {
+    console.error('Error during signup:', error);
+    return c.json({ error: 'Failed to create account' }, 500);
+  }
+});
 
 // ===== USER ROUTES =====
 

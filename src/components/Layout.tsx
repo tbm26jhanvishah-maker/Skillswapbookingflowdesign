@@ -5,8 +5,8 @@ export function Layout() {
   const location = useLocation();
   
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === '/home') {
+      return location.pathname === '/home';
     }
     return location.pathname.startsWith(path);
   };
@@ -23,9 +23,9 @@ export function Layout() {
           </div>
           <div className="flex-1 flex justify-end">
             <Link
-              to="/admin"
+              to="/home/admin"
               className={`p-2 rounded-lg transition-colors ${
-                isActive('/admin')
+                isActive('/home/admin')
                   ? 'text-purple-600 bg-purple-50'
                   : 'text-gray-400 hover:text-purple-600 hover:bg-gray-50'
               }`}
@@ -46,9 +46,9 @@ export function Layout() {
       <nav className="bg-white border-t border-gray-200 px-4 py-2 sticky bottom-0">
         <div className="flex justify-around items-center">
           <Link
-            to="/"
+            to="/home"
             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
-              isActive('/') && !isActive('/chats') && !isActive('/bookings') && !isActive('/profile')
+              isActive('/home') && !isActive('/home/chats') && !isActive('/home/bookings') && !isActive('/home/profile')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-600 hover:text-purple-600'
             }`}
@@ -58,9 +58,9 @@ export function Layout() {
           </Link>
           
           <Link
-            to="/chats"
+            to="/home/chats"
             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
-              isActive('/chats')
+              isActive('/home/chats')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-600 hover:text-purple-600'
             }`}
@@ -70,9 +70,9 @@ export function Layout() {
           </Link>
           
           <Link
-            to="/bookings"
+            to="/home/bookings"
             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
-              isActive('/bookings')
+              isActive('/home/bookings')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-600 hover:text-purple-600'
             }`}
@@ -82,9 +82,9 @@ export function Layout() {
           </Link>
           
           <Link
-            to="/profile"
+            to="/home/profile"
             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
-              isActive('/profile')
+              isActive('/home/profile')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-600 hover:text-purple-600'
             }`}
